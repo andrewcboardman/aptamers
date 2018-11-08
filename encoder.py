@@ -20,27 +20,29 @@ print('{} reads'.format(N))
 print('Length {}'.format(L))
 
 
-# Create encoded array
+# Parse sequences and extract <s_i> and <s_i*s_j>
 
-def encode(seq):
+def averages(seq):
 	# Split up sequence into chars
 	chars = np.array(list(seq),dtype=str)
 	# convert into a data vector
-	boole = np.where(chars[:,np.newaxis] == ['A','C','G'],1,-1).flatten()
-	return boole
+	mag1s = np.where(chars[:,np.newaxis] == ['A','C','G','T'],1,0).flatten()
+	mag2s = np.outer(mag1s,mag1s)
+	return (mag1s,mag2s)
+
+mag1s_av = np.zeros(4*L)
+mag2s_av = np.zeros((4*L,4*L))
 
 seqs = SeqIO.parse(args.infile,'fasta')
-coded_array = np.zeros((N,3*L))
-for i,rec in enumerate(seqs):
-	coded_array[i,:] = encode(rec)
+mags = (averages(seq) for seq in seqs)
+for mag in mags:
+	mag1s_av += mag[0]/N
+	mag2s_av += mag[1]/N
 
-# Calculate the magnetisations and connected correlations of the samples
-# magnetisations = average column value
-mag = np.sum(coded_array,axis=1)/N
 # correlations = matrix of dot products of columns - outer product of magnetisations
-corr = np.tensordot(coded_array,coded_array,axes=(1,1))/N - np.outer(mag,mag)
+corr = mag2s_av - np.outer(mag1s_av,mag1s_av)*N
 
-np.savetxt('magnetisations.out',mag)
+np.savetxt('magnetisations.out',mag1s_av)
 np.savetxt('correlations.out',corr)
 
 
