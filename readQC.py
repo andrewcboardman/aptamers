@@ -25,3 +25,13 @@ good_reads = (rec for rec in trimmed_reads if min(rec.letter_annotations["phred_
 # Write to a new file
 
 SeqIO.write(good_reads, 'filter.fastq', "fastq")
+
+# Trim primers
+
+# Trim low quality base pairs
+
+# Reconstruct apta-ome
+
+# Clustering/alignment of aptamers (if possible)
+# number of length of aptamer sequences
+# May need to pad if some are too short

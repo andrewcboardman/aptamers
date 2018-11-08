@@ -10,39 +10,46 @@ args = parser.parse_args()
 
 # Sequences must all be the same length and not contain any ambiguous base calls
 
-seqs = SeqIO.parse(args.infile,'fasta')
+seqs = SeqIO.parse(args.infile,'fastq')
 N = 0
-L = 0
-for seq in seqs:
+for sequence in seqs:
 	N += 1
-	L = max(L,len(seq))
 print('{} reads'.format(N))
-print('Length {}'.format(L))
-
+L = len(seqs[1].seq)
 
 # Create encoded array
 
-def encode(seq):
+def match(seq):
 	# Split up sequence into chars
 	chars = np.array(list(seq),dtype=str)
-	# convert into a data vector
-	boole = np.where(chars[:,np.newaxis] == ['A','C','G'],1,-1).flatten()
-	return boole
+	# Change bases for integers mod 4
+	match = (chars[:,np.newaxis] == ['A','C','G','T','-']).flatten()
+	return match
 
-seqs = SeqIO.parse(args.infile,'fasta')
-coded_array = np.zeros((N,3*L))
-for i,rec in enumerate(seqs):
-	coded_array[i,:] = encode(rec)
+def bias(seq):
+	# Calculate the site-specific magnetisations and pairwise products for a sequence
+	match = match(seq)
+	mag = match/N
+	pair = np.outer(match,match)/N
+	return mag,pair
+
+
+mag = np.zeros(5*L)
+pair = np.zeros(5*L,5*L)
+
+for seq in seqs:
+	bias = bias(seq)
+	mag += bias[0]
+	pair += bias[1]
+
+corr = pair - np.outer(match,match)
 
 # Calculate the magnetisations and connected correlations of the samples
 # magnetisations = average column value
-mag = np.sum(coded_array,axis=1)/N
+mag = np.sum(coded_array[...,np.newaxis]==range(4),axis=1)/N
+
 # correlations = matrix of dot products of columns - outer product of magnetisations
 corr = np.tensordot(coded_array,coded_array,axes=(1,1))/N - np.outer(mag,mag)
 
 np.savetxt('magnetisations.out',mag)
 np.savetxt('correlations.out',corr)
-
-
-
-
