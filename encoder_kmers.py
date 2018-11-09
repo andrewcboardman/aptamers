@@ -9,7 +9,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-f', '--infile', type=str, action='store', dest='infile',default='test.fastq',	help='Name of raw reads file (FASTQ format)')
 parser.add_argument('-k', '--kmers', type=int, action='store',dest='k',default='1',help='k-mer size to use as feature')
 args = parser.parse_args()
-
+k = args.k
 # Sequences must all be the same length and not contain any ambiguous base calls
 
 seqs = SeqIO.parse(args.infile,'fasta')
@@ -21,7 +21,20 @@ for seq in seqs:
 print('{} reads'.format(N))
 print('Length {}'.format(L))
 
-# Generate all k-mers of length k 
+# Generate all k-mers of length k present in the sequences
+
+seqs = SeqIO.parse(args.infile,'fasta')
+def KMerSplit(seq,k):
+	return (seq[i:i+k] for i in range(L-k))
+kmers = np.empty(N*(L-k),dtype=str)
+i = 0
+for seq in seqs:
+	for kmer in KMerSplit(seq,k):
+		kmers[i] = str(kmer)
+
+helpI
+
+
 
 bases = ('A','C','G','T')
 kmers = (''.join(p) for p in itertools.product(bases, repeat=args.k))
