@@ -10,6 +10,8 @@ parser.add_argument('-f', '--infile', type=str, action='store', dest='infile',de
 parser.add_argument('-k', '--kmers', type=int, action='store',dest='k',default='1',help='k-mer size to use as feature')
 args = parser.parse_args()
 k = args.k
+
+
 # Sequences must all be the same length and not contain any ambiguous base calls
 
 seqs = SeqIO.parse(args.infile,'fasta')
@@ -32,9 +34,11 @@ for seq in seqs:
 	for kmer in KMerSplit(seq,k):
 		kmers[i] = str(kmer)
 
+# Find unique kmers
+kmers_unique,kmers_index,kmer_counts = np.unique(kmers,return_index=True,return_counts=True)
+
+print(np.max(kmers_counts))
 helpI
-
-
 
 bases = ('A','C','G','T')
 kmers = (''.join(p) for p in itertools.product(bases, repeat=args.k))

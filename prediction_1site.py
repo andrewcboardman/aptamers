@@ -16,6 +16,4 @@ profile = np.vstack((mag_rs,p_blank))
 seq = np.empty(L,dtype=str)
 for i in range(L):
 	seq[i] = np.random.choice(['A','C','G','T','-'],p=profile[:,i])
-
-
 print(''.join(seq))
