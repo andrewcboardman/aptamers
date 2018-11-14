@@ -38,16 +38,7 @@ def Metropolis(E1,E2):
 # Generate random sequences 
 init_seqs = 1*(np.random.randint(3,size=(1000,L,1))==np.arange(1,4))
 
-# Find low energy sequences in random pool to start with
-#init_energies = np.zeros(1000)
-#for i in range(1000):
-#	init_energies[i] = IsingEnergy(init_seqs[i,...],h_mf,J_mf)
-#cutoff = np.sort(init_energies)[100]
-#init_seqs = init_seqs[init_energies<cutoff,...]
-
-
-
-# Lower temperature while drawing and recording samples using Gibbs sampling
+# Minimise energy of samples by flipping one spin at a time
 n_samples = 2000
 samples = np.zeros((100,n_samples,L,3))
 energies = np.zeros((100,n_samples))
