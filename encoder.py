@@ -5,12 +5,13 @@ import argparse
 # Take name of read file as input at command line
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-f', '--infile', type=str, action='store', dest='infile',default='test.fastq',	help='Name of raw reads file (FASTQ format)')
+parser.add_argument('-i', '--infile', type=str, action='store', dest='infile',default='test.fastq',	help='Name of raw reads file (FASTQ format)')
+parser.add_argument('-o', '--outfile', type=str, action='store', dest='outfile',default='', help='Flag for output files')
 args = parser.parse_args()
 
 # Sequences must all be the same length and not contain any ambiguous base calls
 
-seqs = SeqIO.parse(args.infile,'fasta')
+seqs = SeqIO.parse(args.infile,'fastq')
 N = 0
 L = 0
 for seq in seqs:
@@ -34,7 +35,7 @@ def averages(seq):
 mag1s_av = np.zeros(3*L)
 mag2s_av = np.zeros((3*L,3*L))
 
-seqs = SeqIO.parse(args.infile,'fasta')
+seqs = SeqIO.parse(args.infile,'fastq')
 mags = (averages(seq) for seq in seqs)
 for mag in mags:
 	mag1s_av += mag[0]/N
@@ -44,8 +45,8 @@ for mag in mags:
 import matplotlib.pyplot as plt
 corr = mag2s_av - np.outer(mag1s_av,mag1s_av)
 
-np.savetxt('../test_data/magnetisations.out',mag1s_av)
-np.savetxt('../test_data/correlations.out',corr)
+np.savetxt('../test_data/magnetisations_{}.out'.format(args.outfile),mag1s_av)
+np.savetxt('../test_data/correlations_{}.out'.format(args.outfile),corr)
 
 
 
