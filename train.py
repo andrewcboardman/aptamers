@@ -80,3 +80,7 @@ if args.model_type == 'ising_mf':
 	np.savetxt('../test_data/output_{}/fields_{}.out'.format(args.outfile,args.outfile),mag1s_av)
 	np.savetxt('../test_data/output_{}/couplings_{}.out'.format(args.outfile,args.outfile),corr)
 
+elif args.model_type == 'ising_ace':
+	print("This hasn't been implemented yet lol")
+
+

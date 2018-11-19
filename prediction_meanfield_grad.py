@@ -9,17 +9,23 @@ args = parser.parse_args()
 
 # Load magnetisations and correlations from file
 
-mag = np.genfromtxt('../test_data/magnetisations_{}.out'.format(args.infile))+0.01
-corr = np.genfromtxt('../test_data/correlations_{}.out'.format(args.infile)) 
-mag = mag.reshape(mag.shape[0]//3,3)
+#mag = np.genfromtxt('../test_data/magnetisations_{}.out'.format(args.infile))+0.01
+#corr = np.genfromtxt('../test_data/correlations_{}.out'.format(args.infile)) 
+#mag = mag.reshape(mag.shape[0]//3,3)
 
 # Use mean-field approximation to get model parameters
 # Pseudocounts to prevent intense negative correlations from dominating
 # Reshape to 
-J_mf = -np.linalg.inv(corr).reshape(corr.shape[0]//3,3,corr.shape[1]//3,3)
-h_mf = np.arctanh(mag) - np.tensordot(J_mf,mag,axes=((2,3),(0,1)))
-L = len(h_mf)
+#J_mf = -np.linalg.inv(corr).reshape(corr.shape[0]//3,3,corr.shape[1]//3,3)
+#h_mf = np.arctanh(mag) - np.tensordot(J_mf,mag,axes=((2,3),(0,1)))
+#L = len(h_mf)
 
+
+h_mf = np.zeros((40,3))
+J_mf = np.zeros((120,120))
+J_mf[0,119] = 100
+J_mf= J_mf.reshape(40,3,40,3)
+L = 40
 def IsingEnergy(samples,h,J):
 	"""Finds the Ising energy for each sample sequence"""
 	field_energy = -np.tensordot(h,samples,axes=((0,1),(1,2)))
