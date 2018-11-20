@@ -20,6 +20,7 @@ if args.model_type == 'ising_mf':
 	h_mf = np.zeros((40,3)).flatten()
 	J_mf = np.zeros((120,120))
 	J_mf[0,119] = 100
+	J_mf[119,0] = 100
 	
 
 
@@ -27,23 +28,24 @@ if args.model_type == 'ising_mf':
 		which_pos = np.random.randint(L,size=N)
 		old_bases = samples[range(N),which_pos,:]
 		new_bases = 1*(np.random.randint(4,size=(N,1))==np.arange(1,4))
-		return (which_pos,old_bases,new_bases)
+		base_changes = new_bases - old_bases
+		return (which_pos,base_changes)
 
 	def IsingEnergyChanges(samples,changes,h,J):
-		(which_pos,old_bases,new_bases) = changes
-		field_energy_change = np.sum(h_mf[which_pos,:] * old_bases, axis=1) - np.sum(h_mf[which_pos,:] * new_bases, axis=1)
-		coupling_energy_change = np.sum(np.sum(J_mf[which_pos,:,:,:] * old_bases[...,np.newaxis,np.newaxis], axis=1) * samples, axis=(1,2)) \
-			- np.sum(np.sum(J_mf[which_pos,:,:,:] * new_bases[...,np.newaxis,np.newaxis], axis=1) * samples, axis=(1,2))
-		return field_energy_change + coupling_energy_change
+		(which_pos,base_changes) = changes
+		field_energy_changes = -np.sum(h_mf[which_pos,:] * base_changes, axis=1) 
+		# Coupling energy change = product of base changes with current samples across J (which is symmetric in leading diagonal)
+		coupling_energy_changes = -2*np.sum(np.sum(J_mf[which_pos,:,:,:] * base_changes[...,np.newaxis,np.newaxis], axis=1) * samples, axis=(1,2)) 
+		return field_energy_changes + coupling_energy_changes
 
 	def MetropolisChanges(samples,deltas,changes,beta,N):
-		(which_pos,old_bases,new_bases) = changes
+		(which_pos,base_changes) = changes
 		accepted = np.exp(-deltas*beta)>np.random.rand(N)
-		accepted_changes = np.where(np.repeat(accepted.reshape(N,1),3,axis=1),new_bases,old_bases)
-		if not np.sum(deltas)==0:
-			print(np.sum(deltas))
+		accepted_no = np.arange(N)[accepted]
+		accepted_pos = which_pos[accepted]
+		accepted_changes = base_changes[accepted]
 		new_samples = np.copy(samples)
-		new_samples[range(N),which_pos,:] = accepted_changes
+		new_samples[accepted_no,accepted_pos,:] += accepted_changes
 		return new_samples
 
 	def IsingEnergy(samples,h,J):
@@ -54,7 +56,7 @@ if args.model_type == 'ising_mf':
 
 
 	# Number of samples 
-	N = 1
+	N = 100
 	L = len(h_mf)//3
 	# Reshape model parameters
 	h_mf = h_mf.reshape(L,3)
