@@ -1,3 +1,4 @@
 apta_env
 MNIST-data
 __pycache__
+*.fasta

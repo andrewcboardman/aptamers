@@ -68,17 +68,23 @@ if args.model_type == 'ising_mf':
 	np.savetxt('../test_data/output_{}/correlations_{}.out'.format(args.outfile,args.outfile),corr)
 
 	# Add pseudocounts to regularise
-	mag += 1/N
-	corr += 1/N
+	#mag = (3/4)* mag + 1/4
+	#corr = (3/4)*corr + 1/4
 
 	# Use mean-field approximation to find fields and couplings
 	print('Calculating fields and couplings')
+	import matplotlib.pyplot as plt
+	im = plt.imshow(corr)
+	plt.colorbar(im)
+	plt.show()
 	J_mf = -np.linalg.inv(corr)
+	for i in range(120):
+		J_mf[i:(i+3),i:(i+3)] = 0
 	h_mf = np.arctanh(mag) - np.dot(J_mf,mag)
 
 	# Save fields and couplings
-	np.savetxt('../test_data/output_{}/fields_{}.out'.format(args.outfile,args.outfile),mag1s_av)
-	np.savetxt('../test_data/output_{}/couplings_{}.out'.format(args.outfile,args.outfile),corr)
+	np.savetxt('../test_data/output_{}/fields_{}.out'.format(args.outfile,args.outfile),h_mf)
+	np.savetxt('../test_data/output_{}/couplings_{}.out'.format(args.outfile,args.outfile),J_mf)
 
 elif args.model_type == 'ising_ace':
 	print("This hasn't been implemented yet lol")
