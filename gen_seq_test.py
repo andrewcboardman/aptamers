@@ -66,7 +66,8 @@ if args.model_type == 'ising_mf':
 
 	samples = np.zeros((n_steps+1,N,L,3))
 	samples[0,:,:,:] = init_samples
-
+	mag = np.zeros(L,3)
+	corr = np.zeros(L*3,L*3)
 	for j in range(n_steps):
 		# propose changes
 
@@ -78,6 +79,10 @@ if args.model_type == 'ising_mf':
 		if (j%(n_steps//10))==0:
 			print('{0}/{1} steps complete'.format(j,n_steps))
 		energies[:,j] = IsingEnergy(samples[j,:,:,:],h_mf,J_mf)
+		mag1s = np.sum(samples[j+1,:,:,:],axis=0)
+
+		mag += mag1s/(N*n_steps)
+		corr += np.outer(mag1s,mag1s)/(N*n_steps)
 
 	# Save final samples and energies across timesteps
 	#np.savetxt('../test_data/samples.out',samples.reshape((n_steps+1)*N,3*L))
@@ -89,6 +94,8 @@ if args.model_type == 'ising_mf':
 		else:
 			return 0 
 	samples = samples[-1,:,:,:].reshape(N,L,3)
+
+
 	#samples = np.apply_along_axis(decode,2,samples)
 	#samples_text = np.apply_along_axis(''.join,1,np.array(['A','C','G','T'])[samples])
 	#sample_seqs = (SeqRecord(Seq(x[0]),id=str(n)) for (n,x) in enumerate(samples_text))
