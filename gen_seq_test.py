@@ -61,13 +61,13 @@ if args.model_type == 'ising_mf':
 	print('Generated samples... \nOptimising samples...')
 	# Minimise energy of samples by flipping one spin at a time
 	n_steps = 2000
-	beta = 1
+	beta = 10
 	energies = np.zeros((N,n_steps))
 
 	samples = np.zeros((n_steps+1,N,L,3))
 	samples[0,:,:,:] = init_samples
-	mag = np.zeros(L,3)
-	corr = np.zeros(L*3,L*3)
+	mag = np.zeros((L,3))
+	corr = np.zeros((L*3,L*3))
 	for j in range(n_steps):
 		# propose changes
 
@@ -93,7 +93,10 @@ if args.model_type == 'ising_mf':
 			return np.nonzero(line)[0] + 1
 		else:
 			return 0 
-	samples = samples[-1,:,:,:].reshape(N,L,3)
+	samples = samples[500:,:,:,:].reshape(N*(n_steps-499),L,3)
+	
+	np.savetxt(mag,'../test_data/output_{}/sample_mag_{}'.format(args.infile,args.infile))
+	np.savetxt(corr,)
 
 
 	#samples = np.apply_along_axis(decode,2,samples)

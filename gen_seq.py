@@ -89,8 +89,8 @@ if args.model_type == 'ising_mf':
 		else:
 			return 0 
 	samples = samples[-1,:,:,:].reshape(N,L,3)
-	#samples = np.apply_along_axis(decode,2,samples)
-	#samples_text = np.apply_along_axis(''.join,1,np.array(['A','C','G','T'])[samples])
+	samples = np.apply_along_axis(decode,2,samples)
+	samples_text = np.apply_along_axis(''.join,1,np.array(['A','C','G','T'])[samples])
 	#sample_seqs = (SeqRecord(Seq(x[0]),id=str(n)) for (n,x) in enumerate(samples_text))
 	#SeqIO.write(sample_seqs,'../test_data/{}.fasta'.format(args.outfile),'fasta')
 
