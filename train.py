@@ -12,32 +12,40 @@ args = parser.parse_args()
 
 
 def parse_infile(infile):
+	# Read fasta files
 	if args.infile.endswith('fasta'):
+		print('Reading {}...'.format(args.infile))
 		return SeqIO.parse(args.infile,'fasta')
-		print('Reading {}...'.format(args.infile))
-	elif args.infile.endswith('fastq'):
-		return SeqIO.parse(args.infile,'fastq')
-		print('Reading {}...'.format(args.infile))
 	else:
 		print('Warning: unrecognised input file format')
 
-# Check pre-processed sequence data in FASTA or FASTQ format
-# Reads must be all the same length and not contain ambiguous base calls
-seqs = parse_infile(args.infile)
-N = 0
-L = 0
-for seq in seqs:
-	N += 1
-	L = max(L,len(seq))
-print('Found {} reads, of length {}'.format(N,L))
+def encode(seq):
+	# Split up sequence into chars
+	chars = np.array(list(seq),dtype=str)
+	# One-hot encoding to find magnetisations
+	return np.where(chars.reshape(L,1) == ['C','G','T'],1,0)
 
 # Set up folder for output
 if not os.path.isdir('../test_data/output_{}'.format(args.outfile)):
 	os.mkdir('../test_data/output_{}'.format(args.outfile))
 
-# Choose which model to train
+# Begin parsing input
+input_parser = parse_infile(args.infile)
 
-if args.model_type == 'ising_mf':
+# Choose which model to train
+if args.model_type == 'ind_site':
+	# Independent site model- no couplings between sites
+	# Parse input
+	f1s = np.zeros((L,3))
+	for seq in input_parser:
+		f1s += encode(seq)/N
+	# Add pseudocount
+	f1s += 1/N
+	# Fields are log(frequency) + a constant
+	h_ind = np.log(f1s)
+	np.save('../test_data/output_{}/h_ind.npy',h_ind)
+
+elif args.model_type == 'ising_mf':
 	# Ising model with mean-field approximation
 	# Parse sequences and extract <s_i> and <s_i*s_j> (One- and two-site frequencies)
 	def averages(seq):
