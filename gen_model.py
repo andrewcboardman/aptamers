@@ -17,6 +17,6 @@ h = np.zeros((args.L,3))
 if not os.path.isdir('../test_data/output_{}'.format(args.outfile)):
 	os.mkdir('../test_data/output_{}'.format(args.outfile))
 # save 
-np.save('../test_data/output_{}/fields.npy'.format(args.outfile),h)
-np.save('../test_data/output_{}/couplings.npy'.format(args.outfile),J)
+np.save('../test_data/output_{}/fields_init.npy'.format(args.outfile),h)
+np.save('../test_data/output_{}/couplings_init.npy'.format(args.outfile),J)
 

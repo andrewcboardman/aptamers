@@ -55,7 +55,7 @@ def main():
 	energies = np.zeros((n_samples,args.Nc))
 
 	# Samples is a rather large array so will be stored on disc as it is written (using memmap)
-	samples = np.memmap(f'../test_data/output_{args.outfile}/samples.npy',dtype=int,mode='w+',shape=(n_samples,args.Nc,args.L,3))
+	samples = np.memmap(f'../test_data/output_{args.outfile}/samples_fs.mmap',dtype=int,mode='w+',shape=(n_samples,args.Nc,args.L,3))
 
 	t1 = time.time()
 	# Burn in 
@@ -96,9 +96,3 @@ def main():
 
 if __name__ == '__main__':
 	main()
-
-
-
-
-
-

@@ -4,62 +4,25 @@ import argparse
 from Bio import SeqIO
 import os
 
-parser = argparse.ArgumentParser()
-parser.add_argument('-i', '--infile', type=str, action='store', dest='infile',default='test.fastq',	help='Name of flag for magnetisation and correlation files')
-parser.add_argument('-m','--model-type', type=str, action='store', dest='model_type',default='mean_field', help='Type of model to be trained')
-parser.add_argument('-o', '--outfile', type=str, action='store', dest='outfile',default='', help='Flag for output files')
-args = parser.parse_args()
-
-
-def parse_infile(infile):
-	# Read fasta files
-	if args.infile.endswith('fasta'):
-		print('Reading {}...'.format(args.infile))
-		return SeqIO.parse(args.infile,'fasta')
-	else:
-		print('Warning: unrecognised input file format')
-
-def encode(seq):
-	# Split up sequence into chars
-	chars = np.array(list(seq),dtype=str)
-	# One-hot encoding to find magnetisations
-	return np.where(chars.reshape(L,1) == ['C','G','T'],1,0)
-
-# Set up folder for output
-if not os.path.isdir('../test_data/output_{}'.format(args.outfile)):
-	os.mkdir('../test_data/output_{}'.format(args.outfile))
-
-# Begin parsing input
-input_parser = parse_infile(args.infile)
-
-# Choose which training to use
-if args.model_type == 'ind_site':
+def IndSites(samples,L,N):
 	# Independent site model- no couplings between sites
 	# Parse input
 	f1s = np.zeros((L,3))
-	for seq in input_parser:
-		f1s += encode(seq)/N
+	for sample in samples:
+		f1s += sample/N
 	# Add pseudocount
 	f1s += 1/N
 	# Fields are log(frequency) + a constant
-	h_ind = np.log(f1s)
-	np.save('../test_data/output_{}/h_ind.npy',h_ind)
+	return np.log(f1s)
 
-elif args.model_type == 'mean_field':
-	# Mean-field model
-	# Factorise in sites - self-consistent
-	# Parse input	
+def MeanField(samples,L,N):
 	f1s = np.zeros((L,3))
 	f2s = np.zeros((L*3,L*3))
 	print('Counting frequencies...')
-	fs = ((seq,np.outer(seq,seq)) for seq in input_parser)
+	fs = ((seq,np.outer(seq,seq)) for seq in samples)
 	for f in fs:
 		f1s += f[0]/N
 		f2s += f[1]/N
-
-	# Add pseudocounts
-	f1s += 1/N
-	f2s += 1/N
 
 	# correlations = average two-site magnetisations - outer product of one-site magnetisations
 	corr = f2s - np.outer(f1s,f1s)
@@ -76,14 +39,43 @@ elif args.model_type == 'mean_field':
 	for i in range(L):
 		J_mf[i,:,i,:] = 0
 
-	# Infer fields
-	h_mf = np.arctanh(f1s) - np.tensordot(J_mf,f1s,axes=2)
+	# Infer fields using first-order approximation
+	h_mf = np.arctanh(f1s)
 
-	# Save fields and couplings
-	np.save('../test_data/output_{}/fields.npy'.format(args.outfile),h_mf)
-	np.save('../test_data/output_{}/couplings.npy'.format(args.outfile),J_mf)
+	return (h_mf,J_mf)
 
-elif args.model_type == 'ising_ace':
-	print("This hasn't been implemented yet lol")
+
+
+def main():
+	parser = argparse.ArgumentParser()
+	parser.add_argument('-i', '--infile', type=str, action='store', dest='infile',default='test.fastq',	help='Name of flag for magnetisation and correlation files')
+	parser.add_argument('-m','--model', type=str, action='store', dest='model',default='mean_field', help='Type of model to be trained')
+	parser.add_argument('-o', '--outfile', type=str, action='store', dest='outfile',default='', help='Flag for output files')
+	args = parser.parse_args()
+
+	# load sample metadata
+	L, Nc, ns, nb, nw, b = np.genfromtxt(f'../test_data/output_{args.outfile}/samples_10m_inf.txt',dtype='int32')
+	# parse npy file using mmap loading so we don't overload RAM
+	# merge first two columns 
+	#samples = np.memmap(f'../test_data/output_{args.outfile}/samples_10m.npy',mode='r',shape=(Nc*ns//nw,L,3))
+	samples = np.load(f'../test_data/output_{args.outfile}/samples_10m.npy',mmap_mode='r').reshape(Nc*ns//nw,L,3)
+
+	# execute training routine
+	if args.model == 'mean_field':
+		(h_mf,J_mf) = MeanField(samples,L,Nc*ns//nw)
+		# Save fields and couplings
+		np.save(f'../test_data/output_{args.outfile}/fields_mf.npy',h_mf)
+		np.save(f'../test_data/output_{args.outfile}/couplings_mf.npy',J_mf)
+	elif args.model == 'ind_sites':
+		h_ind = IndSites(samples,L,Nc*ns//nw)
+		np.save(f'../test_data/output_{args.outfile}/field_ind.npy',h_ind)
+
+
+if __name__ == '__main__':
+	main()
+
+
+
+
 
 
