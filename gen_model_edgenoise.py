@@ -8,7 +8,8 @@ parser.add_argument('-o', '--outfile', type=str, action='store', dest='outfile',
 args = parser.parse_args()
 
 # Initiate J with random Gaussian distributed numbers, symmetrise, set diagonal to zero, and scale by 1/rt(N)
-J = np.random.normal(size=(args.L,3,args.L,3))
+J = np.zeros((args.L,3,args.L,3))
+J[args.L//4:3*args.L//4,:,args.L//4:3*args.L//4,:] = np.random.normal(size=(args.L//2,3,args.L//2,3))
 J = 0.25*(J + np.transpose(J,(2,1,0,3)) + np.transpose(J,(0,3,2,1)) + np.transpose(J,(2,3,0,1)))
 J = J/np.sqrt(3*args.L)
 J[range(args.L),:,range(args.L),:] = 0

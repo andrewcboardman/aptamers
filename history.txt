@@ -1,0 +1,41 @@
+ 2088  python gen_model.py -L 20 -o gauss20
+ 2089  python gen_seq.py -h
+ 2090  python gen_seq.py -o gauss20 -Nc 100 -ns 1000000 -nb 2000 -nw 100 -sp -b 1
+ 2091  python train.py -h
+ 2092  python train.py -o gauss20 -m mean_field
+ 2093  python
+ 2094  python train.py -o gauss20 -m mean_field
+ 2095  python plot_ising.py -i gauss20
+ 2096  python gen_seq.py -o gauss20 -Nc 100 -ns 100000 -nb 2000 -nw 100 -sp -b 1
+ 2097  python train.py -o gauss20 -m mean_field
+ 2098  python plot_ising.py -i gauss20
+ 2099  python gen_seq.py -o gauss20 -Nc 100 -ns 200000 -nb 2000 -nw 100 -sp -b 1
+ 2100  python train.py -o gauss20 -m mean_field
+ 2101  python plot_ising.py -i gauss20
+ 2102  python gen_seq.py -o gauss20 -Nc 100 -ns 500000 -nb 2000 -nw 100 -sp -b 1
+ 2103  python train.py -o gauss20 -m mean_field
+ 2104  python plot_ising.py -i gauss20
+ 2105  python gen_seq.py -o gauss20 -Nc 100 -ns 1000000 -nb 2000 -nw 100 -sp -b 1
+ 2106  python train.py -o gauss20 -m mean_field
+ 2107  python plot_ising.py -i gauss20
+ 2108  python gen_seq.py -o gauss20 -Nc 100 -ns 10000 -nb 2000 -nw 100 -sp -b 1
+ 2109  python train.py -o gauss20 -m mean_field
+ 2110  python plot_ising.py -i gauss20
+ 2111  python gen_seq.py -o gauss20 -Nc 100 -ns 1000 -nb 2000 -nw 100 -sp -b 1
+ 2112  python train.py -o gauss20 -m mean_field
+ 2113  python plot_ising.py -i gauss20
+ 2114  ls
+ 2115  subl generate.sh
+ 2116  python gen_seq.py -o gauss30 -Nc 100 -ns 1000 -nb 2000 -nw 100 -sp -b 1
+ 2117  python gen_model.py -L 30 -o gauss30
+ 2118  python gen_model.py -L 40 -o gauss40
+ 2119  python gen_seq.py -o gauss30 -Nc 100 -ns 1000 -nb 2000 -nw 100 -sp -b 1
+ 2120  python gen_seq.py -o gauss30 -Nc 100 -ns 1000 -nb 2000 -nw 100 -sp -b 1 -L 30
+ 2121  python gen_seq.py -o gauss30 -Nc 100 -ns 10000 -nb 2000 -nw 100 -sp -b 1 -L 30
+ 2122  python gen_seq.py -o gauss30 -Nc 100 -ns 100000 -nb 2000 -nw 100 -sp -b 1 -L 30
+ 2123  python gen_seq.py -o gauss30 -Nc 100 -ns 1000000 -nb 2000 -nw 100 -sp -b 1 -L 30
+ 2124  python train.py -i gauss20 -m mean_field -o 1k
+ 2125  python train.py -i gauss20 -m mean_field -o 10k
+ 2126  python train.py -i gauss20 -m mean_field -o 100k
+ 2127  python train.py -i gauss20 -m mean_field -o 1m
+ 

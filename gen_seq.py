@@ -1,6 +1,7 @@
 import numpy as np
 import argparse
 import time
+import os
 
 def IsingEnergy(seqs,h,J,N,L):
 	"""Finds the Ising energy for each sample sequence"""
@@ -17,7 +18,7 @@ def GibbsSample(seqs,h,J,N,L,b):
 
 	# Calculate changes in energy using Ising model
 	field_energy_changes = -np.sum(h[which_pos,:] * base_changes, axis=1) 
-	coupling_energy_changes = -2*np.sum(np.sum(J[which_pos,...] * base_changes[...,np.newaxis,np.newaxis], axis=1) * seqs, axis=(1,2)) 
+	coupling_energy_changes = -np.sum(np.sum(J[which_pos,...] * base_changes[...,np.newaxis,np.newaxis], axis=1) * seqs, axis=(1,2)) 
 	deltas = field_energy_changes + coupling_energy_changes
 
 	# Accept or reject changes based on energy change
@@ -31,7 +32,8 @@ def GibbsSample(seqs,h,J,N,L,b):
 
 def main():
 	parser = argparse.ArgumentParser()
-	parser.add_argument('-o', '--outfile', type=str, action='store', dest='outfile',default='', help='Flag for output files')
+	parser.add_argument('-i', '--infile', type=str, action='store', dest='infile',	help='Flag for original model')
+	parser.add_argument('-o', '--outfile', type=str, action='store', dest='outfile', help='Flag for output files')
 	parser.add_argument('-L', type=int, action='store',help='Number of spins (each have 4 states)',default=20)
 	parser.add_argument('-Nc', type=int, action='store',help='Number of Markov chains',default=1)
 	parser.add_argument('-ns', type=int, action='store',help='Number of sampling steps per chain',default=10000)
@@ -44,8 +46,8 @@ def main():
 	t0 = time.time()
 
 	# Load fields and couplings from file
-	h = np.load('../test_data/output_{}/fields.npy'.format(args.outfile))
-	J = np.load('../test_data/output_{}/couplings.npy'.format(args.outfile))
+	h = np.load(f'../test_data/output_{args.infile}/fields_init.npy')
+	J = np.load(f'../test_data/output_{args.infile}/couplings_init.npy')
 
 	# Generate random sequences to initialise
 	seqs = 1*(np.random.randint(4,size=(args.Nc,args.L,1))==np.arange(1,4))
@@ -53,9 +55,10 @@ def main():
 	# Initialise output arrays
 	n_samples = args.ns//args.nw
 	energies = np.zeros((n_samples,args.Nc))
-
+	if not os.path.isdir(f'../test_data/output_{args.infile}/{args.outfile}'):
+		os.mkdir(f'../test_data/output_{args.infile}/{args.outfile}')
 	# Samples is a rather large array so will be stored on disc as it is written (using memmap)
-	samples = np.memmap(f'../test_data/output_{args.outfile}/samples.npy',dtype=int,mode='w+',shape=(n_samples,args.Nc,args.L,3))
+	samples = np.memmap(f'../test_data/output_{args.infile}/{args.outfile}/samples.npy',dtype=int,mode='w+',shape=(n_samples,args.Nc,args.L,3))
 
 	t1 = time.time()
 	# Burn in 
@@ -76,8 +79,8 @@ def main():
 	t3 = time.time()
 
 	# Save samples and energies
-	np.save(f'../test_data/output_{args.outfile}/energies.npy',energies)
-	np.savetxt(f'../test_data/output_{args.outfile}/samples_inf.txt',(args.L,args.Nc,args.ns,args.nb,args.nw,args.b))
+	np.save(f'../test_data/output_{args.infile}/{args.outfile}/energies.npy',energies)
+	np.savetxt(f'../test_data/output_{args.infile}/{args.outfile}/samples_inf.txt',(args.L,args.Nc,args.ns,args.nb,args.nw,args.b))
 
 	t4 = time.time()
 
