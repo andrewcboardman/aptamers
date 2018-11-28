@@ -15,7 +15,7 @@ def IndSites(samples,L,N):
 	# Fields are log(frequency) + a constant
 	return np.log(f1s)
 
-def MeanField(samples,L,N):
+def MeanField(samples,L,N,correct):
 	f1s = np.zeros((L,3))
 	f2s = np.zeros((L*3,L*3))
 	print('Counting frequencies...')
@@ -23,8 +23,6 @@ def MeanField(samples,L,N):
 	for f in fs:
 		f1s += f[0]/N
 		f2s += f[1]/N
-	print(np.mean(np.sum(f1s,axis=1)-0.75))
-	print(f2s)
 	# correlations = average two-site magnetisations - outer product of one-site magnetisations
 	corr = f2s - np.outer(f1s,f1s)
 	print('Calculated frequencies...')
@@ -41,8 +39,9 @@ def MeanField(samples,L,N):
 		J_mf[i,:,i,:] = 0
 
 	# Infer fields using first-order approximation
-	h_mf = np.log(f1s / (1 - np.sum(f1s,axis=1)).reshape(L,1)) - np.tensordot(J_mf,f1s,axes=2)
-	print(np.tensordot(J_mf,f1s,axes=2))
+	h_mf = np.log(f1s / (1 - np.sum(f1s,axis=1)).reshape(L,1))
+	if correct:
+		h_mf -= np.tensordot(J_mf,f1s,axes=2)
 
 	return (h_mf,J_mf)
 
@@ -53,6 +52,7 @@ def main():
 	parser.add_argument('-m','--model', type=str, action='store', dest='model',default='mean_field', help='Type of model to be trained')
 	parser.add_argument('-i', '--infile', type=str, action='store', dest='infile',	help='Flag for original model')
 	parser.add_argument('-o', '--outfile', type=str, action='store', dest='outfile', help='Flag for output files')
+	parser.add_argument('-c', '--correct', action='store_true', dest='correct', help='Apply correction to fields')
 	args = parser.parse_args()
 
 	# load sample metadata
@@ -64,7 +64,7 @@ def main():
 	#samples = np.load(f'../test_data/output_{args.outfile}/samples.npy',mmap_mode='r').reshape(Nc*ns//nw,L,3)
 	# execute training routine
 	if args.model == 'mean_field':
-		(h_mf,J_mf) = MeanField(samples,L,Nc*ns//nw)
+		(h_mf,J_mf) = MeanField(samples,L,Nc*ns//nw,args.correct)
 		# Save fields and couplings
 		np.save(f'../test_data/output_{args.infile}/{args.outfile}/fields_mf.npy',h_mf)
 		np.save(f'../test_data/output_{args.infile}/{args.outfile}/couplings_mf.npy',J_mf)
