@@ -15,7 +15,6 @@ def seq2array(seq,L):
 def encode(seqs,arr,L):
 	strings = (str(seq.seq) for seq in seqs)
 	for i,string in enumerate(strings):
-		print(seq2array(string,L))
 		arr[i,...] = seq2array(string,L)
 
 def main():

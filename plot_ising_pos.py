@@ -10,8 +10,8 @@ args = parser.parse_args()
 J_init = np.load(f'../test_data/output_{args.infile}/couplings_init.npy')
 h_init = np.load(f'../test_data/output_{args.infile}/fields_init.npy')
 
-J_mf = np.load(f'../test_data/output_{args.infile}/{args.outfile}/couplings_mf.npy')
-h_mf = np.load(f'../test_data/output_{args.infile}/{args.outfile}/fields_mf.npy')
+J_mf = np.load(f'../test_data/output_{args.infile}/{args.outfile}/couplings_mf_slice_20.npy')
+h_mf = np.load(f'../test_data/output_{args.infile}/{args.outfile}/fields_mf_slice_20.npy')
 
 fig, (ax1,ax2) = plt.subplots(1,2)
 

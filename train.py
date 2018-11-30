@@ -52,13 +52,13 @@ def MeanFieldSlice(samples,L,N,correct,slice_length):
 	print('Counting frequencies...')
 	
 	# use Cartesian product to iterate over all slices of the samples
-	sliced_samples = (sample[i:(i+slice_length)] for (i,sample) in it.product(samples,range(L-slice_length)))
+	sliced_samples = (sample[i:(i+slice_length)] for (i,sample) in it.product(range(L-slice_length),samples))
 	fs = ((seq,np.outer(seq,seq)) for seq in sliced_samples)
 
 	# Count one- and two-site frequencies
 	for f in fs:
-		f1s += f[0]/N
-		f2s += f[1]/N
+		f1s += f[0]/(N*(L-slice_length))
+		f2s += f[1]/(N*(L-slice_length))
 
 	# correlations = average two-site magnetisations - outer product of one-site magnetisations
 	corr = f2s - np.outer(f1s,f1s)
@@ -97,13 +97,13 @@ def main():
 	b = metadata[-1]
 
 	# Read FASTA-formatted samples
-	seqs = SeqIO.parse(f'../test_data/output_{args.infile}/{args.outfile}/samples.fasta','fasta')
+	#seqs = SeqIO.parse(f'../test_data/output_{args.infile}/{args.outfile}/samples.fasta','fasta')
 	
 	# Create numpy array (stored on hard drive to prevent RAM overloading) 
-	samples = np.memmap(f'../test_data/output_{args.infile}/{args.outfile}/samples.npy',mode='w+',dtype=int,shape=(Nc*ns//nw,L,3))
+	samples = np.memmap(f'../test_data/output_{args.infile}/{args.outfile}/samples.npy',mode='r',dtype=int,shape=(Nc*ns//nw,L,3))
 
 	# Populate numpy array with encoded samples
-	encode.encode(seqs,samples,L)
+	#encode.encode(seqs,samples,L)
 
 	# execute training routine
 	if args.model == 'mean_field':
@@ -117,7 +117,7 @@ def main():
 		h_ind = IndSites(samples,L,Nc*ns//nw)
 		np.save(f'../test_data/output_{args.outfile}/field_ind.npy',h_ind)
 	elif args.model == 'mean_field_slice':
-		(h_mf,J_mf) = MeanFieldSlice(samples,L,Nc*ns//nw,args.correct) # scale by inverse T
+		(h_mf,J_mf) = MeanFieldSlice(samples,L,Nc*ns//nw,args.correct,args.slice_length) # scale by inverse T
 		h_mf = h_mf/b 
 		J_mf = J_mf/b
 		# Save fields and couplings
