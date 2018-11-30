@@ -6,7 +6,7 @@ from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
 
-def decode(sample,L):
+def array2string(sample,L):
 	seq = np.empty(dtype='U1',shape=L)
 	seq[sample[:,0]==1] = 'C'
 	seq[sample[:,1]==1] = 'G'
@@ -14,6 +14,11 @@ def decode(sample,L):
 	seq[seq==''] = 'A'
 	return ''.join(seq)
 
+def decode(samples,L):
+	# Decode to string
+	strings = (array2string(sample,L) for sample in samples)
+	# Convert to SeqRecord for writing to file
+	return (SeqRecord(Seq(string,IUPAC.IUPACUnambiguousDNA()),id=f'sample_{i}') for (i,string) in enumerate(strings))
 
 def main():
 	parser = argparse.ArgumentParser()
@@ -30,11 +35,8 @@ def main():
 	# load samples
 	samples = np.memmap(f'../test_data/output_{args.infile}/{args.outfile}/samples.npy',mode='r',dtype=int,shape=(n_samples,L,3))
 
-	# Decode to string
-	strings = (decode(sample,L) for sample in samples)
-
-	# Convert to SeqRecord for writing to file
-	seqs = (SeqRecord(Seq(string,IUPAC.IUPACUnambiguousDNA()),id=f'sample_{i}') for (i,string) in enumerate(strings))
+	# decode to SeqRecords
+	seqs = decode(samples,L)
 
 	# Write to FASTA
 	write(seqs,f'../test_data/output_{args.infile}/{args.outfile}/samples.fasta','fasta')

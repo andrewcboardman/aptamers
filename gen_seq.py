@@ -2,6 +2,8 @@ import numpy as np
 import argparse
 import time
 import os
+import decode
+from Bio import SeqIO
 
 def IsingEnergy(seqs,h,J,N,L):
 	"""Finds the Ising energy for each sample sequence"""
@@ -34,7 +36,7 @@ def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-i', '--infile', type=str, action='store', dest='infile',	help='Flag for original model')
 	parser.add_argument('-o', '--outfile', type=str, action='store', dest='outfile', help='Flag for output files')
-	parser.add_argument('-L', type=int, action='store',help='Number of spins (each have 4 states)',default=20)
+	parser.add_argument('-L', type=int, action='store',help='Number of spins (each have 4 states)',default=40)
 	parser.add_argument('-Nc', type=int, action='store',help='Number of Markov chains',default=1)
 	parser.add_argument('-ns', type=int, action='store',help='Number of sampling steps per chain',default=10000)
 	parser.add_argument('-nb', type=int, action='store',help='Number of burn-in steps',default=1000)
@@ -87,8 +89,13 @@ def main():
 	print(f'Completed. \n{n_samples} samples collected \
 		\nTotal time = {t4-t0}\nWarmup time = {t2-t1}\nSampling time = {t3-t2}')
 
-	# Close connection to samples file
+	# Convert samples to FASTA format
+	sample_text = decode.decode(samples.reshape(n_samples*args.Nc,args.L,3),args.L)
+	# Write to FASTA
+	SeqIO.write(sample_text,f'../test_data/output_{args.infile}/{args.outfile}/samples.fasta','fasta')
+	# Remove unnecessarily large array from memory then disk
 	del samples
+	os.remove(f'../test_data/output_{args.infile}/{args.outfile}/samples.npy')
 
 	# Show plot of energies if desired
 	if args.sp:	
