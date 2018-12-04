@@ -26,7 +26,7 @@ if not os.path.isdir(f'../test_data/output_{args.infile}/{args.outfile}_shifted_
 # Create an array to write shifted samples into
 samples_shifted = np.memmap(f'../test_data/output_{args.infile}/{args.outfile}_shifted_{args.shift_length}/samples.npy',mode='w+',dtype=int,shape=(n_samples,L,3))
 # Copy metadata
-np.savetxt(f'../test_data/output_{args.infile}/{args.outfile}_shifted/samples_inf.txt',(L,Nc,ns,nb,nw,b))
+np.savetxt(f'../test_data/output_{args.infile}/{args.outfile}_shifted_{args.shift_length}/samples_inf.txt',(L,Nc,ns,nb,nw,b))
 # Generate random shifts
 shifts = np.random.randint(-args.shift_length,args.shift_length+1,size=n_samples)
 print(shifts.size)

@@ -25,6 +25,9 @@ def MeanField(samples,L,N,correct):
 	for f in fs:
 		f1s += f[0]/N
 		f2s += f[1]/N
+
+	# pseudocount to prevent overflow
+	f1s = np.clip(f1s,None,0.99)
 	# correlations = average two-site magnetisations - outer product of one-site magnetisations
 	corr = f2s - np.outer(f1s,f1s)
 	print('Calculated frequencies...')
@@ -96,14 +99,15 @@ def main():
 	L, Nc, ns, nb, nw = metadata[:-1].astype('int32')
 	b = metadata[-1]
 
-	# Read FASTA-formatted samples
-	#seqs = SeqIO.parse(f'../test_data/output_{args.infile}/{args.outfile}/samples.fasta','fasta')
-	
-	# Create numpy array (stored on hard drive to prevent RAM overloading) 
-	samples = np.memmap(f'../test_data/output_{args.infile}/{args.outfile}/samples.npy',mode='r',dtype=int,shape=(Nc*ns//nw,L,3))
-
-	# Populate numpy array with encoded samples
-	#encode.encode(seqs,samples,L)
+	if os.path.exists(f'../test_data/output_{args.infile}/{args.outfile}/samples.npy'):
+		samples = np.memmap(f'../test_data/output_{args.infile}/{args.outfile}/samples.npy',mode='r',dtype=int,shape=(Nc*ns//nw,L,3))
+	else:
+		# Read FASTA-formatted samples
+		seqs = SeqIO.parse(f'../test_data/output_{args.infile}/{args.outfile}/samples.fasta','fasta')	
+		# Create numpy array (stored on hard drive to prevent RAM overloading) 
+		samples = np.memmap(f'../test_data/output_{args.infile}/{args.outfile}/samples.npy',mode='w+',dtype=int,shape=(Nc*ns//nw,L,3))
+		# Populate numpy array with encoded samples
+		encode.encode(seqs,samples,L)
 
 	# execute training routine
 	if args.model == 'mean_field':

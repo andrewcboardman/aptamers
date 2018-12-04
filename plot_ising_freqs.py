@@ -8,25 +8,38 @@ parser.add_argument('-o', '--outfile', type=str, action='store', dest='outfile',
 parser.add_argument('-s', '--slice_length',type=int, action='store', dest='slice_length',default=0, help='length of slice from sequence used in training')
 args = parser.parse_args()
 
+def freq(h,J,L):
+	f_start = np.exp( - h)
+	f1 = np.exp( - h - 0.5 * np.tensordot(J, f_start, axes=2))
+	f2 = np.exp( - h.reshape(L,3,1,1) - h.reshape(1,1,L,3) - 0.5 * J \
+		- 0.5 * np.tensordot(J, f_start, axes=2).reshape(L,3,1,1) \
+		- 0.5 * np.tensordot(J, f_start, axes=2).reshape(1,1,L,3) )
+	return (f1,f2)
+
+
 J_init = np.load(f'../test_data/output_{args.infile}/couplings_init.npy')
 h_init = np.load(f'../test_data/output_{args.infile}/fields_init.npy')
+L = h_init.shape[0]
+f_init_1, f_init_2 = freq(h_init,J_init,L)
+
+
 if args.slice_length == 0:
 	J_mf = np.load(f'../test_data/output_{args.infile}/{args.outfile}/couplings_mf.npy')
 	h_mf = np.load(f'../test_data/output_{args.infile}/{args.outfile}/fields_mf.npy')
+	f_mf_1, f_mf_2 = freq(h_mf,J_mf,L)
 
 	fig, (ax1,ax2) = plt.subplots(1,2)
 
-	ax1.scatter(h_init.flatten(),h_mf.flatten(),color='red',alpha=0.5)
+	ax1.scatter(f_init_1.flatten(),f_mf_1.flatten(),color='red',alpha=0.5)
 	ax1.legend()
 	ax1.set_xlabel(r'h$_{init}$')
 	ax1.set_ylabel(r'h$_{MF}$')
 
 
-	ax2.scatter(J_init.flatten(),J_mf.flatten(),color='red',alpha=0.5)
+	ax2.scatter(f_init_2.flatten(),f_init_2.flatten(),color='red',alpha=0.5)
 	ax2.legend()
 	ax2.set_xlabel(r'J$_{init}$')
 	ax2.set_ylabel(r'J$_{MF}$')
-	print(np.corrcoef(J_init.flatten(),J_mf.flatten()))
 
 	plt.suptitle('Actual vs. inferred values for mean-field inference of a Gaussian matrix padded with zeros')
 	plt.show()
@@ -40,9 +53,12 @@ else:
 	J_mf[gap:(L-gap),:,gap:(L-gap),:] = J_mf_slice
 	h_mf = np.zeros((L,3))
 	h_mf[gap:(L-gap),:] = h_mf_slice
+
+	f_mf_1, f_mf_2 = freq(h_mf,J_mf)
+
 	fig, (ax1,ax2) = plt.subplots(1,2)
 
-	ax1.scatter(h_init.flatten(),h_mf.flatten(),color='red',alpha=0.5)
+	ax1.scatter(f_mf_1,f_mf_2,color='red',alpha=0.5)
 	ax1.set_xlabel(r'h$_{init}$')
 	ax1.set_ylabel(r'h$_{MF}$')
 
@@ -54,22 +70,3 @@ else:
 
 	plt.suptitle('Actual vs. inferred values for mean-field inference of a Gaussian matrix padded with zeros')
 	plt.show()
-
-#fit2 = np.polyfit(J_init.flatten(),J_mf.flatten(),1)
-#ax2.plot(J_init.flatten(),fit2[0]*J_init.flatten() + fit2[1])
-
-
-#J_init_std = np.std(J_init)
-#J_mf_std = np.std(J_mf)
-#corr = np.corrcoef(J_init.flatten(),J_mf.flatten())[0,1]
-#ax2.text(0,0,r'$\sigma$(J$_{MF}$)'+f'= {J_mf_std:.2f}')
-#ax2.text(0,0.5,r'$\sigma$(J$_{init}$)'+f'= {J_init_std:.2f}')
-#ax2.text(0,0,r'Correlation '+f'= {h_mf_std:.2f}')
-#im = ax3.imshow(np.triu(J_init.reshape(60,60))+np.tril(J_mf.reshape(60,60)))
-#ax3.set_xlabel(r'J$_{init}$')
-#ax3.set_ylabel(r'J$_{MF}$')
-#plt.colorbar(im)
-
-
-
-
