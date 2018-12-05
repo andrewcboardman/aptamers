@@ -32,14 +32,14 @@ if args.slice_length == 0:
 
 	ax1.scatter(f_init_1.flatten(),f_mf_1.flatten(),color='red',alpha=0.5)
 	ax1.legend()
-	ax1.set_xlabel(r'h$_{init}$')
-	ax1.set_ylabel(r'h$_{MF}$')
+	ax1.set_xlabel(r'f$_{1s init}$')
+	ax1.set_ylabel(r'f$_{1s MF}$')
 
 
-	ax2.scatter(f_init_2.flatten(),f_init_2.flatten(),color='red',alpha=0.5)
+	ax2.scatter(f_init_2.flatten(),f_mf_2.flatten(),color='red',alpha=0.5)
 	ax2.legend()
-	ax2.set_xlabel(r'J$_{init}$')
-	ax2.set_ylabel(r'J$_{MF}$')
+	ax2.set_xlabel(r'f$_{2s init}$')
+	ax2.set_ylabel(r'f$_{2s MF}$')
 
 	plt.suptitle('Actual vs. inferred values for mean-field inference of a Gaussian matrix padded with zeros')
 	plt.show()
@@ -54,19 +54,21 @@ else:
 	h_mf = np.zeros((L,3))
 	h_mf[gap:(L-gap),:] = h_mf_slice
 
-	f_mf_1, f_mf_2 = freq(h_mf,J_mf)
+	f_mf_1, f_mf_2 = freq(h_mf,J_mf,L)
 
 	fig, (ax1,ax2) = plt.subplots(1,2)
 
-	ax1.scatter(f_mf_1,f_mf_2,color='red',alpha=0.5)
-	ax1.set_xlabel(r'h$_{init}$')
-	ax1.set_ylabel(r'h$_{MF}$')
+	ax1.scatter(f_init_1.flatten(),f_mf_1.flatten(),color='red',alpha=0.5)
+	ax1.legend()
+	ax1.set_xlabel(r'f$_{1s init}$')
+	ax1.set_ylabel(r'f$_{1s MF}$')
 
 
-	ax2.scatter(J_init.flatten(),J_mf.flatten(),color='red',alpha=0.5)
-	ax2.set_xlabel(r'J$_{init}$')
-	ax2.set_ylabel(r'J$_{MF}$')
-	print(np.corrcoef(J_init.flatten(),J_mf.flatten()))
+	ax2.scatter(f_init_2.flatten(),f_mf_2.flatten(),color='red',alpha=0.5)
+	ax2.legend()
+	ax2.set_xlabel(r'f$_{2s init}$')
+	ax2.set_ylabel(r'f$_{2s MF}$')
+
 
 	plt.suptitle('Actual vs. inferred values for mean-field inference of a Gaussian matrix padded with zeros')
 	plt.show()
