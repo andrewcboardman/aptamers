@@ -1,4 +1,3 @@
-from Bio import SeqIO
 import numpy as np
 import matplotlib.pyplot as plt
 unique = np.zeros(30)
@@ -8,10 +7,10 @@ maxcount = np.zeros(30)
 for k in range(3,30):
 	with open(f'mers_{k+1}.stats','r') as file:
 		rawtext = file.readlines()
-		unique[k] = int(rawtext[0].split()[-1])
-		distinct[k] = int(rawtext[1].split()[-1])
-		total[k] = int(rawtext[2].split()[-1])
-		maxcount[k] = int(rawtext[3].split()[-1])
+	unique[k] = int(rawtext[0].split()[-1])
+	distinct[k] = int(rawtext[1].split()[-1])
+	total[k] = int(rawtext[2].split()[-1])
+	maxcount[k] = int(rawtext[3].split()[-1])
 
 fig, axs = plt.subplots(2,2)
 axs[0,0].plot(unique)
