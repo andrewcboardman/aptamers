@@ -4,10 +4,10 @@ from Bio import SeqIO
 import itertools
 from Bio import SeqRecord
 
-def annotate(record,k,kmer_hash):
+def kmer_content(record,k,kmer_hash):
 	string = str(record.seq)
-	kmer_content = [str(kmer_hash[string[i:i+k]]) for i in range(len(string)-k)]
-	return SeqRecord.SeqRecord(record.seq,id=record.id,description = ' '.join(kmer_content))		
+	kmer_content = np.unique([kmer_hash[string[i:i+k]] for i in range(len(string)-k)],return_counts=True)
+	return kmer_content
 
 def main():
 	parser = argparse.ArgumentParser()
@@ -24,10 +24,13 @@ def main():
 	# Read FASTA-formatted samples
 	samples = SeqIO.parse(f'../test_data/output_{args.infile}/{args.outfile}/samples.fasta','fasta')
 
-	# Add k-mer counts as descriptions
-	samples_annotated = (annotate(record,args.k,kmer_hash) for record in samples)
+	# Calculate kmer counts
+	kmer_contents = (kmer_content(record,args.k,kmer_hash) for record in samples)
 
-	SeqIO.write(samples_annotated,f'../test_data/output_{args.infile}/{args.outfile}/samples_{args.k}mers.fasta','fasta')
+	# Write to file
+	with open(f'../test_data/output_{args.infile}/{args.outfile}/samples_{args.k}mers.txt','w') as file:
+		for record in kmer_contents:
+			file.write(' '.join(record[0].astype(str)) + '\n' + ' '.join(record[1].astype(str)) + '\n')
 
 if __name__ == '__main__':
 	main()

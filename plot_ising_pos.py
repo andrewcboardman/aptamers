@@ -16,17 +16,16 @@ if args.slice_length == 0:
 
 	fig, (ax1,ax2) = plt.subplots(1,2)
 
-	ax1.plot(h_mf.flatten(),color='blue',label=r'h$_{init}$')
-	ax1.scatter(range(len(h_init.flatten())),h_init.flatten(),color='red',label=r'h$_{MF}$')
+	ax1.plot(h_mf.flatten(),color='blue',label=r'h$_{MF}$')
+	ax1.scatter(range(len(h_init.flatten())),h_init.flatten(),color='red',label=r'h$_{init}$')
 	ax1.legend()
 	ax1.set_xlabel('Position in array')
 	ax1.set_ylabel('Fields')
 
-
-	ax2.scatter(range(len(J_init.flatten())),J_init.flatten(),color='red',label=r'J$_{MF}$')
-	ax2.plot(J_mf.flatten(),color='blue',label=r'J$_{init}$')
+	ax2.plot(J_mf.flatten(),color='blue',label=r'J$_{MF}$')
+	ax2.scatter(range(len(J_init.flatten())),J_init.flatten(),color='red',label=r'J$_{init}$')
 	ax2.legend()
-	ax2.set_xlabel(r'J$_{init}$')
+	ax2.set_xlabel(r'Position in array')
 	ax2.set_ylabel(r'J$_{MF}$')
 
 	plt.suptitle('Actual vs. inferred values for mean-field inference of a Gaussian matrix padded with zeros')
@@ -35,10 +34,12 @@ else:
 	J_mf_slice = np.load(f'../test_data/output_{args.infile}/{args.outfile}/couplings_mf_slice_{args.slice_length}.npy')
 	h_mf_slice = np.load(f'../test_data/output_{args.infile}/{args.outfile}/fields_mf_slice_{args.slice_length}.npy')
 
-	J_mf = np.zeros((40,3,40,3))
-	J_mf[10:30,:,10:30,:] = J_mf_slice
-	h_mf = np.zeros((40,3))
-	h_mf[10:30,:] = h_mf_slice
+	L = J_init.shape[0]
+	gap = (L - args.slice_length) //2
+	J_mf = np.zeros((L,3,L,3))
+	J_mf[gap:(L-gap),:,gap:(L-gap),:] = J_mf_slice
+	h_mf = np.zeros((L,3))
+	h_mf[gap:(L-gap),:] = h_mf_slice
 	fig, (ax1,ax2) = plt.subplots(1,2)
 
 	ax1.plot(h_mf.flatten(),color='blue',label=r'h$_{init}$')

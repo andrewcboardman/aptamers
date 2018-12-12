@@ -35,7 +35,6 @@ def main():
 	# Make output array for samples
 	samples = np.memmap(f'../test_data/output_{args.infile}/{args.outfile}/samples.npy',mode='w+',dtype=int,shape=(n_samples,L,3))
 
-
 	# Populate array with encoded strings
 	encode(seqs,samples,L)
 
