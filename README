@@ -1,4 +1,4 @@
-This program is intended to take sequencing data from an aptamer binding experiment (see Arter et al, Anal. Chem., 2018, 90 (17), pp 10302–10310), process it to identify sequences that successfully bound, and train an Ising model on this data. It consists of three parts:
+This program is intended to take sequencing data from an aptamer binding experiment (see Arter et al, Anal. Chem., 2018, 90 (17), pp 10302–10310), process it to identify sequences that successfully bound, and train an Ising model on these data. It consists of three parts:
 
 Part I: Quality control
 This takes sequence data and removes low quality base pairs and primers
@@ -13,7 +13,14 @@ Part III: Model training
 This trains a model on the encoded data 
 options: Mean-field ising, independent-sites, Boltzmann machine learning/ACE?
 
-Part IV: Prediction
+Part IV: Validation
+This visualises the results of the model training
+Generate samples from model (and compare to originals)
+Plot inferred coefficients on histogram
+Evaluate the probabilities of a set of sequences coming from the model
+
+
+Prediction
 This returns a suggested probability distribution to be used to generate new inputs (the marginal distribution for sequences that bind)
 
 
