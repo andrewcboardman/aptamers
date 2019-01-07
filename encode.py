@@ -2,32 +2,30 @@ import numpy as np
 import argparse
 import os
 from Bio import SeqIO
-from Bio.SeqRecord import SeqRecord
-from Bio.Seq import Seq
-from Bio.Alphabet import IUPAC
 import itertools
+import load_samples
 
-def seq2array(seq,L):
-	array = np.zeros((L,3),dtype=int)
+def seq2array(seq,n_spins):
+	array = np.zeros((n_spins,3),dtype=int)
 	seqarr = np.array(list(seq))[:,np.newaxis]
 	array[seqarr==np.array(('C','G','T'))] = 1
 	return array
 
-def seq2array_indels(seq,L):
-	array = np.zeros((L,4),dtype=int)
+def seq2array_indels(seq,n_spins):
+	array = np.zeros((n_spins,4),dtype=int)
 	seqarr = np.array(list(seq))[:,np.newaxis]
 	array[seqarr==np.array(('A','C','G','T'))] = 1
 	return array
 
-def encode_bases(seqs,arr,L):
+def encode_bases(seqs,arr,n_spins):
 	strings = (str(seq.seq) for seq in seqs)
 	for i,string in enumerate(strings):
-		arr[i,...] = seq2array(string,L)
+		arr[i,...] = seq2array(string,n_spins)
 
-def encode_bases_indels(seqs,arr,L):
+def encode_bases_indels(seqs,arr,n_spins):
 	strings = (str(seq.seq) for seq in seqs)
 	for i,string in enumerate(strings):
-		arr[i,...] = seq2array_indels(string,L)
+		arr[i,...] = seq2array_indels(string,n_spins)
 
 def encode_kmers(record,k,kmer_hash):
 	string = str(record.seq)
@@ -39,25 +37,24 @@ def encode_kmers(record,k,kmer_hash):
 
 def main():
 	parser = argparse.ArgumentParser()
-	parser.add_argument('-i', '--infile', type=str, action='store', dest='infile',	help='Flag for original model')
+	parser.add_argument('-p','--path',type=str,action='store', dest='path',help='path to working folder')
+	parser.add_argument('-i', '--infile', type=str, action='store', dest='infile',	help='FASTA-formatted samples')
 	parser.add_argument('-o', '--outfile', type=str, action='store', dest='outfile', help='Flag for output files')
 	parser.add_argument('-m', '--mode', type=str, action='store', dest='mode', help='Method of encoding')
 	parser.add_argument('-k', type=int,action='store')
 	args = parser.parse_args()
 
 	# Read FASTA-formatted samples
-	seqs = SeqIO.parse(f'../test_data/output_{args.infile}/{args.outfile}/samples.fasta','fasta')
+	seqs = SeqIO.parse(args.path + args.infile,'fasta')
+
 
 	# load sample metadata
-	L, Nc, ns, nb, nw, b = np.genfromtxt(f'../test_data/output_{args.infile}/{args.outfile}/samples_inf.txt',dtype='int32')
-
-	# Count samples
-	n_samples = Nc*ns//nw
+	n_samples,n_spins,b = load_samples.load_metadata(args.path+'samples_inf.txt')
 
 	if args.mode == 'bases':
 		strings = (str(seq.seq) for seq in seqs)
-		coded_strings = (seq2array(string,L) for string in strings)
-		with open(f'../test_data/output_{args.infile}/{args.outfile}/samples_bases.txt','w') as file:
+		coded_strings = (seq2array(string,n_spins) for string in strings)
+		with open(args.path + args.outfile,'w') as file:
 			for record in coded_strings:
 				file.write(' '.join(record[:,0].astype(str)) + '\n' + \
 					' '.join(record[:,1].astype(str)) + '\n' + \
@@ -65,8 +62,8 @@ def main():
 
 	elif args.mode == 'bases_align':
 		strings = (str(seq.seq) for seq in seqs)
-		coded_strings = (seq2array_indels(string,L) for string in strings)
-		with open(f'../test_data/output_{args.infile}/{args.outfile}/samples_bases.txt','w') as file:
+		coded_strings = (seq2array_indels(string,n_spins) for string in strings)
+		with open(args.path + args.outfile,'w') as file:
 			for record in coded_strings:
 				file.write(' '.join(record[:,0].astype(str)) + '\n' + \
 					' '.join(record[:,1].astype(str)) + '\n' + \
@@ -82,7 +79,7 @@ def main():
 		# Calculate kmer counts
 		kmer_contents = (encode_kmers(record,args.k,kmer_hash) for record in seqs)
 
-		with open(f'../test_data/output_{args.infile}/{args.outfile}/samples_{args.k}mers.txt','w') as file:
+		with open(args.path + args.outfile,'w') as file:
 			for record in kmer_contents:
 				file.write(' '.join(record.astype(str)) + '\n')
 

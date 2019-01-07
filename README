@@ -1,6 +1,6 @@
 This program is intended to take sequencing data from an aptamer binding experiment (see Arter et al, Anal. Chem., 2018, 90 (17), pp 10302–10310), process it to identify sequences that successfully bound, and train an Ising model on these data. It consists of three parts:
 
-Part I: Quality control
+Part I: Quality control & Alignment
 This takes sequence data and removes low quality base pairs and primers
 
 Part II: Encoding

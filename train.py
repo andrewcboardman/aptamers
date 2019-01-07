@@ -86,16 +86,20 @@ def MeanFieldSlice(samples,n_spins,N,correct,slice_length):
 def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-m','--model', type=str, action='store', dest='model',default='mean_field', help='Type of model to be trained')
-	parser.add_argument('-i', '--infile', type=str, action='store', dest='infile',	help='Flag for original model')
-	parser.add_argument('-o', '--outfile', type=str, action='store', dest='outfile', help='Flag for output files')
-	parser.add_argument('-c', '--correct', action='store_true', dest='correct', help='Apply correction to fields')
+	parser.add_argument('-p','--path',type=str,action='store', dest='path',help='path to working folder')
+
+	parser.add_argument('-i', '--infile', type=str, action='store', dest='infile',	help='File containing encoded samples')
 	parser.add_argument('-en', '--encoding', type=str,action='store',dest='encoding', help='Method of encoding sequence data')
+	parser.add_argument('-me', '--metadata', type=str, action='store', dest='metadata', help='File containing sample metadata')
+
+	parser.add_argument('-c', '--correct', action='store_true', dest='correct', help='Apply correction to fields')
+
 	parser.add_argument('-s', '--slice_length', type=int, action='store', dest='slice_length', help='Length of slice to take of sample')
 	parser.add_argument('-k', type=int, action='store',help='length of kmer used')
 	args = parser.parse_args()
 
 	# load sample metadata
-	n_samples,n_spins,b = load_samples.load_metadata(f'../test_data/output_{args.infile}/{args.outfile}/samples_inf.txt')
+	n_samples,n_spins,b = load_samples.load_metadata(args.path + args.metadata)
 
 	# load samples
 	if args.encoding == 'bases':
@@ -106,7 +110,7 @@ def main():
 		n_states = 1
 		n_spins = 4**args.k
 
-	samples = load_samples.load_samples(f'../test_data/output_{args.infile}/{args.outfile}/samples_{args.encoding}.txt',n_samples,n_spins,n_states)
+	samples = load_samples.load_samples(args.path + args.infile,n_samples,n_spins,n_states)
 
 	# execute training routine
 	if args.model == 'mean_field':
@@ -114,18 +118,18 @@ def main():
 		h_mf = h_mf/b
 		J_mf = J_mf/b
 		# Save fields and couplings
-		np.savetxt(f'../test_data/output_{args.infile}/{args.outfile}/fields_mf.txt',h_mf)
-		np.savetxt(f'../test_data/output_{args.infile}/{args.outfile}/couplings_mf.txt',J_mf.reshape(n_spins*n_states,n_spins*n_states))
+		np.savetxt(args.path + 'fields_mf.txt',h_mf)
+		np.savetxt(args.path + 'couplings_mf.txt',J_mf.reshape(n_spins*n_states,n_spins*n_states))
 	elif args.model == 'ind_sites':
 		h_ind = IndSites(samples,n_samples)
-		np.save(f'../test_data/output_{args.outfile}/field_ind.npy',h_ind)
+		np.savetxt(args.path + 'fields_ind.txt',h_ind)
 	elif args.model == 'mean_field_slice':
 		(h_mf,J_mf) = MeanFieldSlice(samples,n_spins,Nc*ns//nw,args.correct,args.slice_length) # scale by inverse T
 		h_mf = h_mf/b 
 		J_mf = J_mf/b
 		# Save fields and couplings
-		np.save(f'../test_data/output_{args.infile}/{args.outfile}/fields_mf_slice_{args.slice_length}.npy',h_mf)
-		np.save(f'../test_data/output_{args.infile}/{args.outfile}/couplings_mf_slice_{args.slice_length}.npy',J_mf)
+		np.savetxt(args.path + 'fields_mf_slice.txt',h_mf)
+		np.savetxt(args.path + 'couplings_mf_slice.txt',J_mf.reshape(args.slice_length*n_states,args.slice_length*n_states))
 
 
 if __name__ == '__main__':
