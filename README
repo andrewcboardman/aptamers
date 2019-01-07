@@ -4,10 +4,14 @@ Part I: Quality control
 This takes sequence data and removes low quality base pairs and primers
 
 Part II: Encoding
-This encodes each read as a set of spins (and possibly calculates correlations)
+This encodes each read as a set of spins
+Options: Direct encoding (no alignment), Encoding after alignment, encoding by k-mer content
+encode.py
+(encode_kmers.py)
 
 Part III: Model training
-This trains an Ising model on the encoded data (using a mean-field approach)
+This trains a model on the encoded data 
+options: Mean-field ising, independent-sites, Boltzmann machine learning/ACE?
 
 Part IV: Prediction
 This returns a suggested probability distribution to be used to generate new inputs (the marginal distribution for sequences that bind)

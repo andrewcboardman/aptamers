@@ -1,7 +1,6 @@
 
 import numpy as np
 import argparse
-from Bio import SeqIO
 import os
 import encode
 import itertools as it
@@ -17,17 +16,16 @@ def IndSites(samples,L,N):
 	# Fields are log(frequency) + a constant
 	return np.log(f1s)
 
-def MeanField(samples,L,N,correct):
-	f1s = np.zeros((L,3))
-	f2s = np.zeros((L*3,L*3))
+def MeanField(samples,L,n_samples,q,correct):
+	f1s = np.zeros((L,q))
+	f2s = np.zeros((L*q,L*q))
 	print('Counting frequencies...')
 	fs = ((seq,np.outer(seq,seq)) for seq in samples)
 	for f in fs:
-		f1s += f[0]/N
-		f2s += f[1]/N
-
+		f1s += f[0]/n_samples
+		f2s += f[1]/n_samples
 	# pseudocount to prevent overflow
-	f1s = np.clip(f1s,None,0.99)
+	f1s = np.clip(f1s,None,0.999)
 	# correlations = average two-site magnetisations - outer product of one-site magnetisations
 	corr = f2s - np.outer(f1s,f1s)
 	print('Calculated frequencies...')
@@ -37,14 +35,14 @@ def MeanField(samples,L,N,correct):
 	import matplotlib.pyplot as plt
 
 	# Couplings inferred from inverse correlations
-	J_mf = -np.linalg.inv(corr).reshape(L,3,L,3)
+	J_mf = -np.linalg.inv(corr).reshape(L,q,L,q)
 
 	# only off-diagonal couplings are important
 	for i in range(L):
 		J_mf[i,:,i,:] = 0
 
 	# Infer fields using first-order approximation
-	h_mf = np.log(f1s / (1 - np.sum(f1s,axis=1)).reshape(L,1))
+	h_mf = np.log(f1s / np.clip((1 - np.sum(f1s,axis=1)),0.001,None).reshape(L,1))
 	if correct:
 		h_mf -= np.tensordot(J_mf,f1s,axes=2)
 	return (h_mf,J_mf)
@@ -90,29 +88,32 @@ def main():
 	parser.add_argument('-i', '--infile', type=str, action='store', dest='infile',	help='Flag for original model')
 	parser.add_argument('-o', '--outfile', type=str, action='store', dest='outfile', help='Flag for output files')
 	parser.add_argument('-c', '--correct', action='store_true', dest='correct', help='Apply correction to fields')
+	parser.add_argument('-en', '--encoding', type=str,action='store',dest='encoding', help='Method of encoding sequence data')
 	parser.add_argument('-s', '--slice_length', type=int, action='store', dest='slice_length', help='Length of slice to take of sample')
-	parser.add_argument('-r', '--remove', action='store_true', dest='remove', help='remove numpy binary')
+	parser.add_argument('-k', type=int, action='store',help='length of kmer used')
 	args = parser.parse_args()
 
 	# load sample metadata
 	metadata = np.genfromtxt(f'../test_data/output_{args.infile}/{args.outfile}/samples_inf.txt',dtype='float32')
 	L, Nc, ns, nb, nw = metadata[:-1].astype('int32')
 	b = metadata[-1]
+	n_samples = Nc*ns//nw
 
-	if os.path.exists(f'../test_data/output_{args.infile}/{args.outfile}/samples.npy'):
-		samples = np.memmap(f'../test_data/output_{args.infile}/{args.outfile}/samples.npy',mode='r',dtype=int,shape=(Nc*ns//nw,L,3))
+	# load samples
+	raw_samples = np.genfromtxt(f'../test_data/output_{args.infile}/{args.outfile}/samples_{args.encoding}.txt',dtype=int)
+	if args.encoding == 'bases':
+		q = 3
+	elif args.encoding == 'bases_align':
+		q = 4
 	else:
-		# Read FASTA-formatted samples
-		seqs = SeqIO.parse(f'../test_data/output_{args.infile}/{args.outfile}/samples.fasta','fasta')	
-		# Create numpy array (stored on hard drive to prevent RAM overloading) 
-		samples = np.memmap(f'../test_data/output_{args.infile}/{args.outfile}/samples.npy',mode='w+',dtype=int,shape=(Nc*ns//nw,L,3))
-		# Populate numpy array with encoded samples
-		encode.encode(seqs,samples,L)
+		q = 1
+		L = 4**args.k
+	samples = raw_samples.reshape(n_samples,L,q)
 
 	# execute training routine
 	if args.model == 'mean_field':
-		(h_mf,J_mf) = MeanField(samples,L,Nc*ns//nw,args.correct) # scale by inverse T
-		h_mf = h_mf/b 
+		(h_mf,J_mf) = MeanField(samples,L,n_samples,q,args.correct) # scale by inverse T
+		h_mf = h_mf/b
 		J_mf = J_mf/b
 		# Save fields and couplings
 		np.save(f'../test_data/output_{args.infile}/{args.outfile}/fields_mf.npy',h_mf)
@@ -128,9 +129,6 @@ def main():
 		np.save(f'../test_data/output_{args.infile}/{args.outfile}/fields_mf_slice_{args.slice_length}.npy',h_mf)
 		np.save(f'../test_data/output_{args.infile}/{args.outfile}/couplings_mf_slice_{args.slice_length}.npy',J_mf)
 
-	del samples
-	if args.remove:
-		os.remove(f'../test_data/output_{args.infile}/{args.outfile}/samples.npy')
 
 if __name__ == '__main__':
 	main()
