@@ -17,19 +17,12 @@ def IndSites(samples,n_spins,N):
 	# Fields are log(frequency) + a constant
 	return np.log(f1s)
 
-def MeanField(samples,n_spins,n_samples,n_states,correct):
-	f1s = np.zeros((n_spins,n_states))
-	f2s = np.zeros((n_spins*n_states,n_spins*n_states))
-	print('Counting frequencies...')
-	fs = ((seq,np.outer(seq,seq)) for seq in samples)
-	for f in fs:
-		f1s += f[0]/n_samples
-		f2s += f[1]/n_samples
+def MeanField(f1s,f2s,n_spins,n_states,correct):
+	
 	# pseudocount to prevent overflow
 	f1s = np.clip(f1s,None,0.999)
 	# correlations = average two-site magnetisations - outer product of one-site magnetisations
 	corr = f2s - np.outer(f1s,f1s)
-	print('Calculated frequencies...')
 
 	# Use mean-field approximation to find fields and couplings
 	print('Calculating fields and couplings')
@@ -86,40 +79,28 @@ def MeanFieldSlice(samples,n_spins,N,correct,slice_length):
 def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-m','--model', type=str, action='store', dest='model',default='mean_field', help='Type of model to be trained')
+	
 	parser.add_argument('-p','--path',type=str,action='store', dest='path',help='path to working folder')
-
 	parser.add_argument('-i', '--infile', type=str, action='store', dest='infile',	help='File containing encoded samples')
-	parser.add_argument('-en', '--encoding', type=str,action='store',dest='encoding', help='Method of encoding sequence data')
-	parser.add_argument('-me', '--metadata', type=str, action='store', dest='metadata', help='File containing sample metadata')
-
+	
 	parser.add_argument('-c', '--correct', action='store_true', dest='correct', help='Apply correction to fields')
-
-	parser.add_argument('-s', '--slice_length', type=int, action='store', dest='slice_length', help='Length of slice to take of sample')
-	parser.add_argument('-k', type=int, action='store',help='length of kmer used')
+	
+	parser.add_argument('-q', '--n_states', type=str, action='store', help='Number of states per spin')
+	parser.add_argument('-L', '--n_spins', type=str, action='store', help='Number of spins')
+	parser.add_argument('-b', '--temp', type=str, action='store', help='Inverse temperature')
 	args = parser.parse_args()
 
-	# load sample metadata
-	n_samples,n_spins,b = load_samples.load_metadata(args.path + args.metadata)
-
-	# load samples
-	if args.encoding == 'bases':
-		n_states = 3
-	elif args.encoding == 'bases_align':
-		n_states = 4
-	else:
-		n_states = 1
-		n_spins = 4**args.k
-
-	samples = load_samples.load_samples(args.path + args.infile,n_samples,n_spins,n_states)
+	f1s = np.genfromtxt(args.path + 'f1s_' + args.infile)
+	f2s = np.genfromtxt(args.path + 'f2s_' + args.infile)
 
 	# execute training routine
 	if args.model == 'mean_field':
-		(h_mf,J_mf) = MeanField(samples,n_spins,n_samples,n_states,args.correct) # scale by inverse T
+		(h_mf,J_mf) = MeanField(f1s,f2s,n_spins,n_states,args.correct) # scale by inverse T
 		h_mf = h_mf/b
 		J_mf = J_mf/b
 		# Save fields and couplings
-		np.savetxt(args.path + 'fields_mf.txt',h_mf)
-		np.savetxt(args.path + 'couplings_mf.txt',J_mf.reshape(n_spins*n_states,n_spins*n_states))
+		np.savetxt(args.path + 'h_mf_' + args.infile,h_mf)
+		np.savetxt(args.path + 'J_mf_' + args.infile,J_mf.reshape(n_spins*n_states,n_spins*n_states))
 	elif args.model == 'ind_sites':
 		h_ind = IndSites(samples,n_samples)
 		np.savetxt(args.path + 'fields_ind.txt',h_ind)
