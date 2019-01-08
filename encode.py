@@ -39,7 +39,7 @@ def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-p','--path',type=str,action='store', dest='path',help='path to working folder')
 	parser.add_argument('-i', '--infile', type=str, action='store', dest='infile',	help='FASTA-formatted samples')
-	parser.add_argument('-o', '--outfile', type=str, action='store', dest='outfile', help='Flag for output files')
+	parser.add_argument('-o', '--outfile', type=str, action='store', dest='outfile', help='name of encoded text file')
 	parser.add_argument('-m', '--mode', type=str, action='store', dest='mode', help='Method of encoding')
 	parser.add_argument('-k', type=int,action='store')
 	args = parser.parse_args()
