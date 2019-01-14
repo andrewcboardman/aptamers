@@ -6,14 +6,8 @@ import encode
 import itertools as it
 import load_samples
 
-def IndSites(samples,n_spins,N):
+def IndSites(samples,n_spins):
 	# Independent site model- no couplings between sites
-	# Parse input
-	f1s = np.zeros((n_spins,3))
-	for sample in samples:
-		f1s += sample/N
-	# Add pseudocount
-	f1s += 1/N
 	# Fields are log(frequency) + a constant
 	return np.log(f1s)
 
@@ -85,9 +79,9 @@ def main():
 	
 	parser.add_argument('-c', '--correct', action='store_true', dest='correct', help='Apply correction to fields')
 	
-	parser.add_argument('-q', '--n_states', type=str, action='store', help='Number of states per spin')
-	parser.add_argument('-L', '--n_spins', type=str, action='store', help='Number of spins')
-	parser.add_argument('-b', '--temp', type=str, action='store', help='Inverse temperature')
+	parser.add_argument('-q', '--n_states', type=int, action='store', help='Number of states per spin')
+	parser.add_argument('-L', '--n_spins', type=int, action='store', help='Number of spins')
+	parser.add_argument('-b', type=float, action='store', default=1, help='Inverse temperature')
 	args = parser.parse_args()
 
 	f1s = np.genfromtxt(args.path + 'f1s_' + args.infile)
@@ -95,19 +89,19 @@ def main():
 
 	# execute training routine
 	if args.model == 'mean_field':
-		(h_mf,J_mf) = MeanField(f1s,f2s,n_spins,n_states,args.correct) # scale by inverse T
-		h_mf = h_mf/b
-		J_mf = J_mf/b
+		(h_mf,J_mf) = MeanField(f1s,f2s,args.n_spins,args.n_states,args.correct) # scale by inverse T
+		h_mf = h_mf/args.b
+		J_mf = J_mf/args.b
 		# Save fields and couplings
 		np.savetxt(args.path + 'h_mf_' + args.infile,h_mf)
-		np.savetxt(args.path + 'J_mf_' + args.infile,J_mf.reshape(n_spins*n_states,n_spins*n_states))
+		np.savetxt(args.path + 'J_mf_' + args.infile,J_mf.reshape(args.n_spins*args.n_states,args.n_spins*args.n_states))
 	elif args.model == 'ind_sites':
-		h_ind = IndSites(samples,n_samples)
+		h_ind = IndSites(samples,args.n_spins)
 		np.savetxt(args.path + 'fields_ind.txt',h_ind)
 	elif args.model == 'mean_field_slice':
 		(h_mf,J_mf) = MeanFieldSlice(samples,n_spins,Nc*ns//nw,args.correct,args.slice_length) # scale by inverse T
-		h_mf = h_mf/b 
-		J_mf = J_mf/b
+		h_mf = h_mf/args.b 
+		J_mf = J_mf/args.b
 		# Save fields and couplings
 		np.savetxt(args.path + 'fields_mf_slice.txt',h_mf)
 		np.savetxt(args.path + 'couplings_mf_slice.txt',J_mf.reshape(args.slice_length*n_states,args.slice_length*n_states))

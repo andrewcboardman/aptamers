@@ -34,6 +34,20 @@ def encode_kmers(record,k,kmer_hash):
 	kmer_spins[kmer_content[0]] = 1
 	return kmer_spins
 
+def seq2array_ortho(seq,n_spins):
+	array = np.zeros((n_spins,3),dtype=int)
+	for i in range(n_spins):
+		if seq[i] == 'A':
+			array[i,:] = (-3,0,0)
+		elif seq[i] == 'C':
+			array[i,:] = (1,-2,0)
+		elif seq[i] == 'G':
+			array[i,:] = (1,1,-1)
+		elif seq[i] == 'T':
+			array[i,:] = (1,1,1)
+	return array
+
+
 
 def main():
 	parser = argparse.ArgumentParser()
@@ -82,6 +96,15 @@ def main():
 		with open(args.path + args.outfile,'w') as file:
 			for record in kmer_contents:
 				file.write(' '.join(record.astype(str)) + '\n')
+
+	elif args.mode == 'bases_ortho':
+		strings = (str(seq.seq) for seq in seqs)
+		coded_strings = (seq2array_ortho(string,n_spins) for string in strings)
+		with open(args.path + args.outfile,'w') as file:
+			for record in coded_strings:
+				file.write(' '.join(record[:,0].astype(str)) + '\n' + \
+					' '.join(record[:,1].astype(str)) + '\n' + \
+					' '.join(record[:,2].astype(str)) + '\n')
 
 if __name__ == '__main__':
 	main()
