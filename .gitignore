@@ -2,3 +2,4 @@ apta_env
 MNIST-data
 __pycache__
 *.fasta
+classify/myenv
