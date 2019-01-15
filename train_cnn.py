@@ -1,23 +1,29 @@
 import argparse
 from encode_pysster import encode
+from pysster.Data import Data
 from pysster.Model import Model
 from pysster import utils
+import os
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-i', '--infile', type=str, action='store', dest='infile',	help='Input filename')
-parser.add_argument('-o', '--outfile', type=str, action='store', dest='infile',	help='Output filename')
+parser.add_argument('-i1', '--infile1', type=str, action='store', dest='infile1',	help='Input filename 1')
+parser.add_argument('-i2', '--infile2', type=str, action='store', dest='infile2',	help='Input filename')
+parser.add_argument('-o', '--outfile', type=str, action='store', dest='outfile',	help='Output folder')
 args = parser.parse_args()
 
-data, params = encode(args.infile)
-data.train_val_test_split(0.8,0.1,0.1)
+data = Data([args.infile1,args.infile2],'ACGT')
+data.train_val_test_split(0.8,0.1,1)
 
 model_params = {'conv_num':1, 'kernel_len':10}
-model = Model(data,model_params)
+model = Model(model_params,data)
 
 print('Imported data. Infering model...')
 model.train(data)
 
 predictions = model.predict(data,'test')
+output_folder = args.outfile
+if not os.path.exists(output_folder):
+	os.mkdir(output_folder)
 utils.plot_roc(labels, predictions, output_folder+"roc.png")
 utils.plot_prec_recall(labels, predictions, output_folder+"prec.png")
 print(utils.get_performance_report(labels, predictions))

@@ -1,5 +1,9 @@
 from pysster.Data import Data
 
+
+
+
+
 def encode(filenames,structures_provided=False):
 	if not structures_provided:
 		data = Data(filenames,'ACGT')

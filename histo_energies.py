@@ -3,8 +3,9 @@ import argparse
 import numpy as np
 
 def plot(E1,E2):
-	plt.hist(E1,density=True,color='blue',alpha=0.5)
-	plt.hist(energies_rand,density=True,color='red',alpha=0.5)
+	plt.switch_backend('TkAgg')
+	plt.hist(E1,density=True,color='blue',alpha=0.5,bins=50)
+	plt.hist(E2,density=True,color='red',alpha=0.5,bins=50)
 	plt.xlabel('Ising energy of sequence')
 	plt.ylabel('Frequency')
 	plt.show()
@@ -21,5 +22,5 @@ def main():
 	energies_rand = np.genfromtxt(args.path+args.infile2)
 	plot(energies,energies_rand)
 
-if __name__ = '__main__':
+if __name__ == '__main__':
 	main()
