@@ -70,9 +70,7 @@ def main():
 		coded_strings = (seq2array(string,n_spins) for string in strings)
 		with open(args.path + args.outfile,'w') as file:
 			for record in coded_strings:
-				file.write(' '.join(record[:,0].astype(str)) + '\n' + \
-					' '.join(record[:,1].astype(str)) + '\n' + \
-					' '.join(record[:,2].astype(str)) + '\n')
+				file.write(' '.join(record[:,:3].astype(str).flatten())
 
 	elif args.mode == 'bases_align':
 		strings = (str(seq.seq) for seq in seqs)
@@ -89,7 +87,7 @@ def main():
 		bases = ('A','C','G','T')
 		kmers = [''.join(x) for x in itertools.product(bases,repeat=args.k)]
 		kmer_hash = dict(zip(kmers,range(4**args.k)))
-		
+
 		# Calculate kmer counts
 		kmer_contents = (encode_kmers(record,args.k,kmer_hash) for record in seqs)
 
