@@ -1,2 +1,0 @@
-import numpy as np
-np.genfromtxt('f1s_samples_bases.txt')
