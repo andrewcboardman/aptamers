@@ -1,0 +1,17 @@
+from pysster.Data import Data
+import matplotlib.pyplot as plt
+data_minus = Data(['../mf_artificial_samples.fasta'],'ACGT')
+data_plus = Data(['plus.fasta'],'ACGT')
+profile_plus = sum((data.astype('int32') for data in data_plus.data))/len(data_plus.data)
+profile_minus = sum((data.astype('int32') for data in data_minus.data))/len(data_minus.data)
+plt.switch_backend('TkAgg')
+plt.scatter(profile_plus[:,0],profile_minus[:,0],label='A',color='blue')
+plt.scatter(profile_plus[:,1],profile_minus[:,1],label='C',color='orange')
+plt.scatter(profile_plus[:,2],profile_minus[:,2],label='G',color='green')
+plt.scatter(profile_plus[:,3],profile_minus[:,3],label='T',color='red')
+plt.plot([0.15,0.35],[0.15,0.35],color='black')
+plt.title('Comparison of single-base frequencies across the binding and artificial sequences')
+plt.xlabel('Frequency of base in binding sequence')
+plt.ylabel('Frequency of base in artificial sequence')
+plt.legend()
+plt.show()
