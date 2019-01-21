@@ -20,10 +20,10 @@ def main():
 
 	
 	# load options
-	L, Nc, ns, nb, nw, b = np.genfromtxt(f'../test_data/output_{args.infile}/{args.outfile}/samples_inf.txt',dtype='int32')
-	n_samples = ns//nw
+	#L, Nc, ns, nb, nw, b = np.genfromtxt(f'../test_data/output_{args.infile}/{args.outfile}/samples_inf.txt',dtype='int32')
+	#n_samples = ns//nw
 	# parse npy file using mmap loading so we don't overload RAM
-	samples = np.memmap(f'../test_data/output_{args.infile}/{args.outfile}/samples.npy',mode='r',dtype=int,shape=(n_samples,Nc,L,3))
+	#samples = np.memmap(f'../test_data/output_{args.infile}/{args.outfile}/samples.npy',mode='r',dtype=int,shape=(n_samples,Nc,L,3))
 	if args.all:
 		for i in range(Nc):
 			PlotAutoCorr(samples[:,i,...],n_samples,L)
