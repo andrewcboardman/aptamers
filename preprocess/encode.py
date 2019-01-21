@@ -17,14 +17,6 @@ def seq2code(seq):
 # 	array[seqarr==np.array(('A','C','G','T'))] = 1
 # 	return array
 
-
-# def encode_kmers(record,k,kmer_hash):
-# 	string = str(record.seq)
-# 	kmer_content = np.unique([kmer_hash[string[i:i+k]] for i in range(len(string)-k)],return_counts=True)
-# 	kmer_spins = np.zeros(4**k,dtype=int)
-# 	kmer_spins[kmer_content[0]] = 1
-# 	return kmer_spins
-
 # def seq2array_ortho(seq,n_spins):
 # 	array = np.zeros((n_spins,3),dtype=int)
 # 	for i in range(n_spins):
@@ -63,7 +55,7 @@ def main():
 			for record in coded_strings:
 				file.write(' '.join(record.astype(str).flatten()))
 
-	# elif args.mode == 'bases_align':
+	# elif args.mode == 'indels':
 	# 	strings = (str(seq.seq) for seq in seqs)
 	# 	coded_strings = (seq2array_indels(string,n_spins) for string in strings)
 	# 	with open(args.path + args.outfile,'w') as file:
@@ -73,20 +65,7 @@ def main():
 	# 				' '.join(record[:,2].astype(str)) + '\n' + \
 	# 				' '.join(record[:,3].astype(str)) + '\n')
 
-	# elif args.mode == 'kmers':
-	# 	# Generate kmer hash
-	# 	bases = ('A','C','G','T')
-	# 	kmers = [''.join(x) for x in itertools.product(bases,repeat=args.k)]
-	# 	kmer_hash = dict(zip(kmers,range(4**args.k)))
-
-	# 	# Calculate kmer counts
-	# 	kmer_contents = (encode_kmers(record,args.k,kmer_hash) for record in seqs)
-
-	# 	with open(args.path + args.outfile,'w') as file:
-	# 		for record in kmer_contents:
-	# 			file.write(' '.join(record.astype(str)) + '\n')
-
-	# elif args.mode == 'bases_ortho':
+	# elif args.mode == 'ortho':
 	# 	strings = (str(seq.seq) for seq in seqs)
 	# 	coded_strings = (seq2array_ortho(string,n_spins) for string in strings)
 	# 	with open(args.path + args.outfile,'w') as file:
