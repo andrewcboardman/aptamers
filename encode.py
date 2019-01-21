@@ -63,8 +63,9 @@ def main():
 
 
 	# load sample metadata
-	n_samples,n_spins,b = load_samples.load_metadata(args.path+'samples_inf.txt')
-
+	#n_samples,n_spins,b = load_samples.load_metadata(args.path+'samples_inf.txt')
+	n_samples = 100000
+	n_spins = 40
 	if args.mode == 'bases':
 		strings = (str(seq.seq) for seq in seqs)
 		coded_strings = (seq2array(string,n_spins) for string in strings)

@@ -4,10 +4,12 @@ import numpy as np
 
 def plot(E1,E2):
 	plt.switch_backend('TkAgg')
-	plt.hist(E1,density=True,color='blue',alpha=0.5,bins=50)
-	plt.hist(E2,density=True,color='red',alpha=0.5,bins=50)
+	plt.hist(E1,density=True,color='blue',alpha=0.5,bins=50,label='Energies of control sequences')
+	plt.hist(E2,density=True,color='red',alpha=0.5,bins=50,label='Energies of binding sequences')
 	plt.xlabel('Ising energy of sequence')
 	plt.ylabel('Frequency')
+	plt.legend()
+	plt.title('Histogram plots of the Ising energies for binding and control sequences')
 	plt.show()
 
 
@@ -21,6 +23,7 @@ def main():
 	energies = np.genfromtxt(args.path+args.infile1)
 	energies_rand = np.genfromtxt(args.path+args.infile2)
 	plot(energies,energies_rand)
+
 
 if __name__ == '__main__':
 	main()

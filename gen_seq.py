@@ -4,6 +4,8 @@ import time
 import os
 import decode
 from Bio import SeqIO
+import matplotlib.pyplot as plt
+from scipy.signal import correlate
 
 def IsingEnergy(seqs,h,J,N,L):
 	"""Finds the Ising energy for each sample sequence"""
@@ -32,6 +34,13 @@ def GibbsSample(seqs,h,J,N,L,b):
 	new_seqs[accepted_no,accepted_pos,:] += accepted_changes
 	return new_seqs
 
+def PlotAutoCorr(samples,n,L):
+	# normalise samples
+	normed_samples = (samples - np.mean(samples,axis=0))/np.std(samples,axis=0)
+	# calculate autocorrelation
+	corr = correlate(normed_samples,normed_samples,mode='same',method='fft')/(n*L*3)
+	return plt.plot(range(-n//2,n//2),corr[:,L//2,1])
+
 def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-i', '--infile', type=str, action='store', dest='infile',	help='Flag for original model')
@@ -47,9 +56,11 @@ def main():
 
 	t0 = time.time()
 
-	# Load fields and couplings from file
-	h = np.load(f'../test_data/output_{args.infile}/fields_init.npy')
-	J = np.load(f'../test_data/output_{args.infile}/couplings_init.npy')
+
+
+	coeff = np.genfromtxt(args.infile)
+	h = coeff[-1,:].reshape(40,3)
+	J = coeff[:-1,:].reshape(40,3,40,3)
 
 	# Generate random sequences to initialise
 	seqs = 1*(np.random.randint(4,size=(args.Nc,args.L,1))==np.arange(1,4))
@@ -57,11 +68,11 @@ def main():
 	# Initialise output arrays
 	n_samples = args.ns//args.nw
 	energies = np.zeros((n_samples,args.Nc))
-	if not os.path.isdir(f'../test_data/output_{args.infile}/{args.outfile}'):
-		os.mkdir(f'../test_data/output_{args.infile}/{args.outfile}')
+	#if not os.path.isdir(f'../test_data/output_{args.infile}/{args.outfile}'):
+	#	os.mkdir(f'../test_data/output_{args.infile}/{args.outfile}')
 	# Samples is a rather large array so will be stored on disc as it is written (using memmap)
-	samples = np.memmap(f'../test_data/output_{args.infile}/{args.outfile}/samples.npy',dtype=int,mode='w+',shape=(n_samples,args.Nc,args.L,3))
-
+	#samples = np.memmap(f'../test_data/output_{args.infile}/{args.outfile}/samples.npy',dtype=int,mode='w+',shape=(n_samples,args.Nc,args.L,3))
+	samples = np.zeros((args.ns//args.nw,args.Nc,40,3))
 	t1 = time.time()
 	# Burn in 
 	print('Started warmup...')
@@ -81,8 +92,8 @@ def main():
 	t3 = time.time()
 
 	# Save samples and energies
-	np.save(f'../test_data/output_{args.infile}/{args.outfile}/energies.npy',energies)
-	np.savetxt(f'../test_data/output_{args.infile}/{args.outfile}/samples_inf.txt',(args.L,args.Nc,args.ns,args.nb,args.nw,args.b))
+	#np.save(f'../test_data/output_{args.infile}/{args.outfile}/energies.npy',energies)
+	#np.savetxt(f'../test_data/output_{args.infile}/{args.outfile}/samples_inf.txt',(args.L,args.Nc,args.ns,args.nb,args.nw,args.b))
 
 	t4 = time.time()
 
@@ -92,16 +103,13 @@ def main():
 	# Convert samples to FASTA format
 	sample_text = decode.decode(samples.reshape(n_samples*args.Nc,args.L,3),args.L)
 	# Write to FASTA
-	SeqIO.write(sample_text,f'../test_data/output_{args.infile}/{args.outfile}/samples.fasta','fasta')
-	# Remove unnecessarily large array from memory then disk
-	del samples
-	os.remove(f'../test_data/output_{args.infile}/{args.outfile}/samples.npy')
+	SeqIO.write(sample_text,args.outfile,'fasta')
+
 
 	# Show plot of energies if desired
 	if args.sp:	
 		import matplotlib.pyplot as plt
-		plt.plot(energies)
-		plt.title(f'Ising energies of samples')
+		PlotAutoCorr(samples.reshape(n_samples*args.Nc,args.L,3),n_samples*args.Nc,40)
 		plt.show()
 
 if __name__ == '__main__':
